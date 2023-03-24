@@ -1,82 +1,83 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export default function App() {
-	const questions = [
-		{
-			questionText: 'What is the capital of France?',
-			answerOptions: [
-				{ answerText: 'New York', isCorrect: false },
-				{ answerText: 'London', isCorrect: false },
-				{ answerText: 'Paris', isCorrect: true },
-				{ answerText: 'Dublin', isCorrect: false },
-			],
-		},
-		{
-			questionText: 'Who is CEO of Tesla?',
-			answerOptions: [
-				{ answerText: 'Jeff Bezos', isCorrect: false },
-				{ answerText: 'Elon Musk', isCorrect: true },
-				{ answerText: 'Bill Gates', isCorrect: false },
-				{ answerText: 'Tony Stark', isCorrect: false },
-			],
-		},
-		{
-			questionText: 'The iPhone was created by which company?',
-			answerOptions: [
-				{ answerText: 'Apple', isCorrect: true },
-				{ answerText: 'Intel', isCorrect: false },
-				{ answerText: 'Amazon', isCorrect: false },
-				{ answerText: 'Microsoft', isCorrect: false },
-			],
-		},
-		{
-			questionText: 'How many Harry Potter books are there?',
-			answerOptions: [
-				{ answerText: '1', isCorrect: false },
-				{ answerText: '4', isCorrect: false },
-				{ answerText: '6', isCorrect: false },
-				{ answerText: '7', isCorrect: true },
-			],
-		},
-	];
-	const [currentQuestion, setCurrentQuestion] = useState(0);
-	const [showScore, setShowScore] = useState(false);
-	const [score, setScore] = useState(0);
+const bookmarksEndpoint = "https://hn.algolia.com/api/v1/search?query=";
 
+const bookmarksReducer = (state, action) => {
+	switch (action.type) {
+		case 'BOOKMARKS_LOADING_INIT':
+			return {
+				...state,
+				isLoading: true,
+				isError: false
+			};
+		case "BOOKMARKS_LOADING_SUCCESS":
 
-	const handleAnswerButtonClick = (isCorrect) => {
-		if (isCorrect) {
-			setScore(score + 1);
+			state.isLoading = false
+			state.isError = false
+			state.data = action.payload
+
+			return { ...state }
+		case "BOOKMARKS_LOADING_FAILURE":
+			return {
+				...state,
+				isLoading: false,
+				isError: true
+			};
+		default:
+			throw new Error();
+	}
+};
+
+function App() {
+
+	const [bookmarks, dispatchBookmarks] = React.useReducer(
+		bookmarksReducer,
+		{
+			data: [],
+			isLoading: false,
+			isError: false
 		}
-		const nextQuestion = currentQuestion + 1;
-		if (nextQuestion < questions.length) {
-			setCurrentQuestion(nextQuestion);
-		} else {
-			setShowScore(true);
-		}
-	};
+	);
+	console.log(bookmarks.isLoading)
 
+	React.useEffect(() => {
+		dispatchBookmarks({ type: 'BOOKMARKS_LOADING_INIT' })
+		fetch(`${bookmarksEndpoint}react`)
+			.then(response => response.json())
+			.then(result => {
+				dispatchBookmarks({
+					type: 'BOOKMARKS_LOADING_SUCCESS',
+					payload: result.hits
+				});
+			}).catch(
+				() => dispatchBookmarks({
+					type: 'BOOKMARKS_LOADING_FAILURE'
+				})
+			);
+	}, []);
 	return (
-		<div className='app'>
-			{/* HINT: replace "false" with logic to display the 
-      score when the user has answered all the questions */}
-			{showScore ? (
-				<div className='score-section'>You scored {score} out of {questions.length}</div>
-			) : (
-				<>
-					<div className='question-section'>
-						<div className='question-count'>
-							<span>Question {currentQuestion + 1}</span>/{questions.length}
-						</div>
-						<div className='question-text'>{questions[currentQuestion].questionText}</div>
-					</div>
-					<div className='answer-section'>
-						{questions[currentQuestion].answerOptions.map((answerOption, index) => (
-							<button onClick={() => handleAnswerButtonClick(answerOption.isCorrect)}>{answerOption.answerText}</button>
-						))}
-					</div>
-				</>
-			)}
-		</div>
+		<React.Fragment>
+
+
+			<div className="App">
+				<header className="App-header">
+					{/* <img src={logo} className="App-logo" alt="logo" /> */}
+					<p>
+						{bookmarks.isError && <p>Erorr just happened ... </p>}
+						{
+							bookmarks.isLoading ? (<p>Loading ...</p>) : <List links={bookmarks} />
+						}
+					</p>
+				</header>
+			</div>
+		</React.Fragment>
 	);
 }
+
+function List({ links }) {
+	return links.data.map(item =>
+		<div><a href={item.url}>{item.title}</a></div>)
+}
+
+
+export default App;
