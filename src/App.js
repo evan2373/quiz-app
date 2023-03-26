@@ -1,83 +1,88 @@
-import React from 'react';
+import React, { useReducer } from 'react';
 
-const bookmarksEndpoint = "https://hn.algolia.com/api/v1/search?query=";
-
-const bookmarksReducer = (state, action) => {
-	switch (action.type) {
-		case 'BOOKMARKS_LOADING_INIT':
-			return {
-				...state,
-				isLoading: true,
-				isError: false
-			};
-		case "BOOKMARKS_LOADING_SUCCESS":
-
-			state.isLoading = false
-			state.isError = false
-			state.data = action.payload
-
-			return { ...state }
-		case "BOOKMARKS_LOADING_FAILURE":
-			return {
-				...state,
-				isLoading: false,
-				isError: true
-			};
-		default:
-			throw new Error();
+const products = [
+	{
+		emoji: '🍦',
+		name: 'ice cream',
+		price: 10
+	},
+	{
+		emoji: '🍩',
+		name: 'donuts',
+		price: 12.5,
+	},
+	{
+		emoji: '🍉',
+		name: 'watermelon',
+		price: 8
 	}
-};
+];
 
-function App() {
+// --------------------------------------------
+// !!! DO NOT MODIFY ABOVE THIS LINE !!!
+// --------------------------------------------
 
-	const [bookmarks, dispatchBookmarks] = React.useReducer(
-		bookmarksReducer,
-		{
-			data: [],
-			isLoading: false,
-			isError: false
-		}
-	);
-	console.log(bookmarks.isLoading)
+// YOUR MAY ADD ANY ADDITIONAL FUNCTIONS HERE IF YOU NEED, NAMELY THE computeTotal(), etc.
 
-	React.useEffect(() => {
-		dispatchBookmarks({ type: 'BOOKMARKS_LOADING_INIT' })
-		fetch(`${bookmarksEndpoint}react`)
-			.then(response => response.json())
-			.then(result => {
-				dispatchBookmarks({
-					type: 'BOOKMARKS_LOADING_SUCCESS',
-					payload: result.hits
-				});
-			}).catch(
-				() => dispatchBookmarks({
-					type: 'BOOKMARKS_LOADING_FAILURE'
-				})
-			);
-	}, []);
+
+const computeTotal = state => {
+	if (state.length !== 0) {
+		let price_list = []
+		state.forEach(item => price_list.push(item.price))
+		return price_list.reduce((total, item) => total + item)
+
+	}
+}
+
+
+function reducer(state, action) {
+	switch (action.type) {
+		case "add":
+
+			return [...state, action.payload]
+
+		case "remove":
+			let index = state.findIndex(item => item.name === action.payload.name)
+			let temp = [...state]
+			if (index !== -1) temp.splice(index, 1)
+			return [...temp]
+		default:
+			return state;
+	}
+}
+
+const App = () => {
+
+	const [state, dispatch] = useReducer(reducer, []);
+
+	// YOUR CODE HERE
+	const add = product => dispatch({ type: "add", payload: product })
+	const remove = product => dispatch({ type: "remove", payload: product })
+
+	console.log(state)
+	// --------------------------------------------
+	// !!! DO NOT MODIFY BELOW THIS LINE !!!
+	// --------------------------------------------
 	return (
-		<React.Fragment>
-
-
-			<div className="App">
-				<header className="App-header">
-					{/* <img src={logo} className="App-logo" alt="logo" /> */}
-					<p>
-						{bookmarks.isError && <p>Erorr just happened ... </p>}
-						{
-							bookmarks.isLoading ? (<p>Loading ...</p>) : <List links={bookmarks} />
-						}
-					</p>
-				</header>
+		<>
+			<div>
+				Total Items in Shopping Cart: {state.length}
 			</div>
-		</React.Fragment>
-	);
+			<div>Total Cost: ${computeTotal(state)}</div>
+
+			<div>
+				{products.map(product => (
+					<div key={product.name}>
+						<div className="product">
+							<span>{product.emoji}</span>
+						</div>
+						<div>Price ${product.price}</div>
+						<button onClick={() => add(product)}>Add</button>
+						<button onClick={() => remove(product)}>Remove</button>
+					</div>
+				))}
+			</div>
+		</>
+	)
 }
-
-function List({ links }) {
-	return links.data.map(item =>
-		<div><a href={item.url}>{item.title}</a></div>)
-}
-
-
 export default App;
