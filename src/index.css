@@ -11,25 +11,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
-body {
-  height: 100vh;
-  margin: 0;
-  display: grid;
-  place-items: center;
-}
-
-.product span {
-  font-size: 100px;
-}
-
-.wrapper {
-  padding: 20px;
-  font-size: 20px;
-}
-
-.wrapper button {
-  font-size: 20px;
-  background: none;
-  border: black solid 1px;
-}

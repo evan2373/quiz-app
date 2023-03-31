@@ -1,88 +1,110 @@
-import React, { useReducer } from 'react';
+import './App.css';
+import React from 'react';
 
-const products = [
-	{
-		emoji: '🍦',
-		name: 'ice cream',
-		price: 10
-	},
-	{
-		emoji: '🍩',
-		name: 'donuts',
-		price: 12.5,
-	},
-	{
-		emoji: '🍉',
-		name: 'watermelon',
-		price: 8
-	}
+const url = 'https://jsonplaceholder.typicode.com/users';
+
+// --------------------------------------------
+// !!! DO NOT MODIFY !!!
+// Fetch with Promise: This code fetches data 
+// from the given API endpoint using HTTP GET,
+// with a 3 sec delay before the request is sent
+// !!! DO NOT MODIFY !!!
+// --------------------------------------------
+const getUsersWithDelay = (url) =>
+	new Promise(resolve =>
+		setTimeout(() => {
+			resolve(fetch(url, {
+				method: 'GET',
+			}).then((response) => response.json()));
+		}, 3000)
+	);
+
+// --------------------------------------------
+// App Component: entry point for your app. The
+// Effect forces this component rendering on 
+// initialization, which triggers the data fetch
+// promise to asynchronously set the users state
+// when data come back.
+//
+// TODO (A): Fill in the YOUR_CODE_HERE below
+// --------------------------------------------
+function App() {
+
+	const [users, setUsers] = React.useState([]);
+	const fetchUsers = () => getUsersWithDelay(url);
+
+	React.useEffect(
+		() => {
+			fetchUsers().then(result => {
+				setUsers(result)
+			});
+		}, []);
+
+	return (
+		<div className="tables">
+			<UserTable users={users} />
+		</div>
+	);
+}
+
+// --------------------------------------------
+// UserTable Component: renders a Table component
+// consisting of a Header child component
+//
+// TODO (B): Fill in the YOUR_CODE_HERE section
+// --------------------------------------------
+const UserTable = ({ users }) => [
+	<Table
+		title="Users"
+		items={users}
+		headerRender={Header}
+	/>
 ];
 
 // --------------------------------------------
-// !!! DO NOT MODIFY ABOVE THIS LINE !!!
+// Table Component: renders the entire table by
+// mapping the data we retrieved into their 
+// respective rows in sequence (via Array.map())
+//
+// TODO (C): Fill in the YOUR_CODE_HERE section
 // --------------------------------------------
-
-// YOUR MAY ADD ANY ADDITIONAL FUNCTIONS HERE IF YOU NEED, NAMELY THE computeTotal(), etc.
-
-
-const computeTotal = state => {
-	if (state.length !== 0) {
-		let price_list = []
-		state.forEach(item => price_list.push(item.price))
-		return price_list.reduce((total, item) => total + item)
-
-	}
-}
-
-
-function reducer(state, action) {
-	switch (action.type) {
-		case "add":
-
-			return [...state, action.payload]
-
-		case "remove":
-			let index = state.findIndex(item => item.name === action.payload.name)
-			let temp = [...state]
-			if (index !== -1) temp.splice(index, 1)
-			return [...temp]
-		default:
-			return state;
-	}
-}
-
-const App = () => {
-
-	const [state, dispatch] = useReducer(reducer, []);
-
-	// YOUR CODE HERE
-	const add = product => dispatch({ type: "add", payload: product })
-	const remove = product => dispatch({ type: "remove", payload: product })
-
-	console.log(state)
-	// --------------------------------------------
-	// !!! DO NOT MODIFY BELOW THIS LINE !!!
-	// --------------------------------------------
-	return (
-		<>
-			<div>
-				Total Items in Shopping Cart: {state.length}
-			</div>
-			<div>Total Cost: ${computeTotal(state)}</div>
-
-			<div>
-				{products.map(product => (
-					<div key={product.name}>
-						<div className="product">
-							<span>{product.emoji}</span>
-						</div>
-						<div>Price ${product.price}</div>
-						<button onClick={() => add(product)}>Add</button>
-						<button onClick={() => remove(product)}>Remove</button>
-					</div>
+const Table = (props) => (
+	<div>
+		<h2 className="title">{props.title}</h2>
+		<table className="table">
+			<thead>
+				{props.headerRender()}
+			</thead>
+			<tbody>
+				{props.items.map(user => (
+					<tr key={user.id}>
+						<td>
+							<span>{user.id}</span>
+						</td>
+						<td>
+							<span>{user.name}</span>
+						</td>
+						<td>
+							<span>{user.email}</span>
+						</td>
+					</tr>
 				))}
-			</div>
-		</>
-	)
-}
+			</tbody>
+		</table>
+	</div>
+);
+
+// --------------------------------------------
+// !!! DO NOT MODIFY !!!
+// Header component: renders the table's header
+// // !!! DO NOT MODIFY !!!
+// --------------------------------------------
+const Header = (props) => (
+	<tr>
+		<th>Id</th>
+		<th>Name</th>
+		<th>Email</th>
+	</tr>
+);
+
 export default App;
